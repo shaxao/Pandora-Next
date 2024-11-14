@@ -1,0 +1,81 @@
+server:
+  port: 80
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #47.99.126.109 3Gt7*p  localhost root
+    url: jdbc:mysql://47.99.126.109:3306/chat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: mhchat773584..
+  application:
+    name: chat
+  data:
+    mongodb:
+      host: 47.99.126.109
+      port: 8080
+      database: chatdb
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    cache: false
+#      servlet:
+#        content-type: text/html
+    mode: HTML5
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+mail:
+  user: mhchat@ttzi.top
+  password: T1e2s3t4P5a6s
+  mime:
+    splitlongparameters: false  #用于解决附件名过长导致的显示异常
+  smtp:
+    host: smtpdm.aliyun.com
+    port: 465
+    auth: true
+    from: mhchat@ttzi.top
+    ssl:
+      enable: true
+    #qq邮箱授权码  YPENGGTGDQQHAZLJ    mhchatal@qq.com  kiexyairjfkvbgii
+
+    fromEmail: mhchat@ttzi.top
+    fromName: 木火科技
+
+app:
+  config:
+    url: https://api.qipusong.site    #https://api.gptgod.online                                                           #https://coze-bot.onrender.com
+    openTextUri: /v1/chat/completions                        #/v1/chat/completions
+    imageUri: /v1/images/generations
+    apiKey: sk-RnucML8POtx8QmxU8d63Cb748aFd46F8B7AfF3Af2bEc70Ac  #sk-zwSrmq5vdXCv1IjYjCYwHwtIn7ZqRQzayQdRZExWylXjq3M3 #sk-F3gH5JkP0QxLmnR7aBc2TdYsVoZ6UiWtS8bh9rEz #sk-8hO1JDJfMRfnuEjKrfkPodjJgOdvbcf4Fz0GlB7tqcO5Lm4T #sk-F3gH5JkP0QxLmnR7aBc2TdYsVoZ6UiWtS8bh9rEz
+    top_p: 0.9           # 温度采样的替代方法，称为原子核采样，其中模型考虑概率质量top_p标记的结果。因此，0.1 表示仅考虑包含前 10% 概率质量的代币。较低的top_p值会使模型倾向于选择更高概率的词汇，从而生成更加确定性和连贯性的文本；而较高的top_p值允许模型探索更多可能性，增加文本的多样性
+    temperature: 0.35     # 使用什么采样温度，介于 0 和 2 之间。较高的值（如 0.8）将使输出更加随机，而较低的值（如 0.2）将使输出更加集中和确定。 我们通常建议改变这个或top_p但不是两者。
+    seed: null
+    presence_penalty: 0      # 对于已设定的promot作用需要 介于 -2.0 和 2.0 之间的数字。正值会根据新标记是否出现在文本中来惩罚它们，从而增加模型谈论新主题的可能性。 值越小，重复词汇出现可能越大，适用于特定主题；否则词汇更多样化和新颖，适用于创作者
+    frequency_penalty: 0     # 介于 -2.0 和 2.0 之间的数字。到目前为止，正值会根据新标记在文本中的现有频率来惩罚新标记，从而降低模型逐字重复同一行的可能性。 文本创作可适当调高
+    max_tokens: 10240
+    stream: true
+  audio:
+    xunfei:
+      hostUrl: https://iat-api.xfyun.cn/v2/iat
+      appid: 8da5d157
+      apiSecret: YTY3MGYzYmZlYjQzZTQxZjM5ZWMwMjhm
+      apiKey: c7ff5345b9823c9b45d1e679b632ddbc
+    openai:
+      hostUrl: https://api.qipusong.site
+      tranUri: /v1/audio/transcriptions
+      speeUri: /v1/audio/speech
+      apiKey: sk-RnucML8POtx8QmxU8d63Cb748aFd46F8B7AfF3Af2bEc70Ac
+
+turnstile:
+  secret:
+   key: 0x4AAAAAAAc7WcbtqH_WHv-KYUQCopkr4lc
+
+logging:
+  level:
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.springframework.jdbc.core.StatementCreatorUtils: TRACE

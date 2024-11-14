@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lou.freegpt.mapper.ChatLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.lou.freegpt.domain.ChatLog">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="businessType" column="business_type" jdbcType="INTEGER"/>
+            <result property="method" column="method" jdbcType="VARCHAR"/>
+            <result property="requestMethod" column="request_method" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="reqIp" column="req_ip" jdbcType="VARCHAR"/>
+            <result property="operName" column="oper_name" jdbcType="VARCHAR"/>
+            <result property="operLocation" column="oper_location" jdbcType="VARCHAR"/>
+            <result property="reqParam" column="req_param" jdbcType="VARCHAR"/>
+            <result property="resp" column="resp" jdbcType="VARCHAR"/>
+            <result property="errorMsg" column="error_msg" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="VARCHAR"/>
+            <result property="beginTime" column="begin_time" jdbcType="VARCHAR"/>
+            <result property="endTime" column="end_time" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,business_type,method,
+        request_method,description,req_ip,
+        oper_name,oper_location,req_param,
+        resp,error_msg,status,
+        begin_time,end_time
+    </sql>
+</mapper>
