@@ -25,3 +25,9 @@
 ![image](https://github.com/shaxao/GPT-web/assets/95196396/b3c053a2-bd2e-440f-9563-7785c4efd803)
 ![image](https://github.com/shaxao/GPT-web/assets/95196396/4ce5659f-829c-4ae9-b2e8-4c231684f04e)
 ![image](https://github.com/shaxao/GPT-web/assets/95196396/150782b7-3474-4d2b-aa8a-e9f0b0fb1b07)
+![image](https://github.com/user-attachments/assets/cac037c6-ee66-4314-9d5b-83005299852f)
+
+![image](https://github.com/user-attachments/assets/d4ab6500-06ad-4bcb-9e69-4d515fe7ceaa)
+![image](https://github.com/user-attachments/assets/7fd2b9c2-3954-41f0-8383-f3cb04934f30)
+
+
