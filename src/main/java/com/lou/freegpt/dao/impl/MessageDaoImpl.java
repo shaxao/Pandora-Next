@@ -99,7 +99,9 @@ public class MessageDaoImpl implements MessageDao {
         author.setMetadata(new HashMap<>());
 
         message.setAuthor(author);
-        message.setCreateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        String formattedTime = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        message.setCreateTime(formattedTime);
         message.setUpdateTime(null);
 
         MessageEntity.Content content = new MessageEntity.Content();
@@ -144,5 +146,24 @@ public class MessageDaoImpl implements MessageDao {
     @Override
     public MessageEntity findById(String id) {
         return mongoTemplate.findById(id,MessageEntity.class);
+    }
+
+    @Override
+    public TitleEntity findTitleById(String conversationId) {
+        Query query = new Query(Criteria.where("conversationId").is(conversationId));
+        return mongoTemplate.findOne(query, TitleEntity.class);
+    }
+
+    @Override
+    public int getShareCount(String conversationId) {
+        TitleEntity title = findTitleById(conversationId);
+        return title != null ? title.getShareCount() : 0;
+    }
+
+    @Override
+    public void incrementShareCount(String conversationId) {
+        Query query = new Query(Criteria.where("conversationId").is(conversationId));
+        Update update = new Update().inc("shareCount", 1);
+        mongoTemplate.updateFirst(query, update, TitleEntity.class);
     }
 }

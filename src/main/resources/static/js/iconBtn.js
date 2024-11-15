@@ -78,7 +78,7 @@ function openModal(type) {
     </button>
   </div>
   <div class="w-full">
-    <p class="mb-3 text-sm text-token-text-tertiary">实际啥都没有。经费不足，页面暂无。
+    <p class="mb-3 text-sm text-token-text-tertiary">木火科技
     </p>
   </div>
     `;
@@ -368,7 +368,16 @@ shareBtn.addEventListener('click', function (event) {
   openModal('updateLink');
   const shareValue = document.getElementById("shareValue");
   const sessionId = getActiveSessionId();
-  shareValue.value = `${baseUrl}/share/${sessionId}`;
+  // 获取当前页面的完整 URL
+  const currentUrl = window.location.href;
+
+// 使用 URL 对象来解析和构建 baseUrl
+  const url = new URL(currentUrl);
+
+// 构建 baseUrl，包含协议和主机名
+  const baseUri = `${url.protocol}//${url.host}`;
+
+  shareValue.value = `${baseUri}/share/${sessionId}`;
   const copyBtn = document.getElementById("copyShareButton");
   copyBtn.addEventListener('click', function () {
     const shareValue = document.getElementById("shareValue");
