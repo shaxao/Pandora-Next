@@ -14,7 +14,7 @@ import lombok.Data;
 @TableName(value ="chat_user")
 @Data
 public class ChatUser implements Serializable {
-    private Integer id;
+    private Long id;
 
     private String username;
 
@@ -35,6 +35,10 @@ public class ChatUser implements Serializable {
     private Date updatedAt;
 
     private String avatar;
+
+    private String subStatus;
+
+    private Integer balance;
 
     private static final long serialVersionUID = 1L;
 
@@ -83,23 +87,20 @@ public class ChatUser implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", username=").append(username);
-        sb.append(", email=").append(email);
-        sb.append(", password=").append(password);
-        sb.append(", verificationCode=").append(verificationCode);
-        sb.append(", userLevel=").append(userLevel);
-        sb.append(", isDeleted=").append(isDeleted);
-        sb.append(", userStatus=").append(userStatus);
-        sb.append(", createdAt=").append(createdAt);
-        sb.append(", updatedAt=").append(updatedAt);
-        sb.append(", avatar=").append(avatar);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return "ChatUser{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", verificationCode='" + verificationCode + '\'' +
+                ", userLevel=" + userLevel +
+                ", isDeleted=" + isDeleted +
+                ", userStatus='" + userStatus + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", avatar='" + avatar + '\'' +
+                ", subStatus='" + subStatus + '\'' +
+                ", balance=" + balance +
+                '}';
     }
 }

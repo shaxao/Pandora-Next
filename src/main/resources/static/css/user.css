@@ -106,3 +106,19 @@
 .user-img:hover {
   --f: 1.35;
 } */
+
+/* 添加响应式样式 */
+@media screen and (max-width: 768px) {
+  .user-set {
+    height: auto;
+    padding: 5px;
+  }
+
+  .login-menu {
+    width: 180px;
+  }
+
+  .user-name {
+    font-size: 0.9em;
+  }
+}

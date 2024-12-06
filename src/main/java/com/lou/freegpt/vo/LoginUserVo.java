@@ -11,5 +11,6 @@ public class LoginUserVo implements Serializable {
     private String username;
     private String email;
     private String avatar;
+    private String userStatus;
 
 }

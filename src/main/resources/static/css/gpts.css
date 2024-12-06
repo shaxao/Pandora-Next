@@ -460,3 +460,53 @@ video {
 .loading.show {
   display: block;
 }
+
+/* 添加响应式布局 */
+@media screen and (max-width: 768px) {
+  .new-container {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .new-container-main-header-title {
+    width: 100%;
+    font-size: 1.8rem;
+    padding: 0 15px;
+  }
+
+  .new-container-main-search {
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .new-container-main-fenlei-build {
+    overflow-x: auto;
+    padding: 0 10px;
+  }
+
+  .new-container-main-fenlei-build-item {
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  .new-container-main-area {
+    margin: 15px;
+  }
+
+  .new-container-main-area-grid-item {
+    height: 120px;
+    padding-left: 20px;
+  }
+}
+
+/* 平板设备 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .new-container {
+    width: var(--chat-container-width);
+  }
+
+  .new-container-main-header-title {
+    width: 100%;
+    max-width: 40rem;
+  }
+}

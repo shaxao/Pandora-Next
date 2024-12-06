@@ -23,9 +23,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -34,7 +36,7 @@ import java.util.List;
 public class JsonUsernamePasswordAuthenticationFilter extends OncePerRequestFilter {
     private UserDetailsService userDetailsService;
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final String[] PERMITS = new String[]{"/login","/login.html", "/index.html","/api/user/register", "/api/user/username", "/ws/api/audio", "/api/user/email/code","/api/user/phone","/api/user/email"};
+    private static final String[] PERMITS = new String[]{"/login","/login.html", "/index.html","/api/user/register", "/api/user/username", "/ws/api/audio", "/api/user/email/code","/api/user/phone","/api/user/email", "/favicon.ico", "/mini-coi.js", "/admin.html"};
     public static final List<String> PERMITS_LIST;
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -57,6 +59,41 @@ public class JsonUsernamePasswordAuthenticationFilter extends OncePerRequestFilt
         if (requestURI.startsWith("/api")){
             requestURI = requestURI.substring(4);
         }
+//        if(requestURI.equals("/api/gen_title")){
+//            log.info("=== 请求详情开始 ===");
+//            log.info("请求URI: {}", requestURI);
+//            log.info("请求方法: {}", request.getMethod());
+//            log.info("请求类型: {}", request.getContentType());
+//
+//             //{"messageId":"ab842ae9-a306-4584-ba6c-57009400d192","conversationId":"72d19d60-3fd1-413c-a287-506c166d250d","firstFlag":true,"apiKey":"","baseUrl":"","web":false,"content":"asdsadsadsadsadsadsadsdasdasd"}
+//
+//            // 记录请求参数
+//            log.info("=== 请求参数 ===");
+//            request.getParameterMap().forEach((key, value) -> {
+//                log.info("Parameter {} : {}", key, Arrays.toString(value));
+//            });
+//            // 如果是POST请求，尝试读取请求体
+//            if ("POST".equalsIgnoreCase(request.getMethod())) {
+//                BufferedReader reader = null;
+//                try {
+//                    reader = request.getReader();
+//                    StringBuilder requestBody = new StringBuilder();
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        requestBody.append(line);
+//                    }
+//                    log.info("=== 请求体 ===");
+//                    log.info("Request Body: {}", requestBody.toString());
+//                } catch (Exception e) {
+//                    log.warn("无法读取请求体: {}", e.getMessage());
+//                }finally {
+//                    reader.close();
+//                }
+//            }
+//
+//            log.info("=== 请求详情结束 ===");
+//        }
+
         log.info("分割后请求URI：{}", requestURI);
         try {
             // 对于其他需要验证的请求
@@ -84,6 +121,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends OncePerRequestFilt
                     return request.getServletPath().substring(4);
                 }
             };
+            String finaRequestURI = wrapper.getRequestURI();
+            log.info("最终请求URI：{}", finaRequestURI);
             filterChain.doFilter(wrapper, response);
         } else {
             filterChain.doFilter(request, response);
@@ -120,9 +159,10 @@ public class JsonUsernamePasswordAuthenticationFilter extends OncePerRequestFilt
                 if (!isValToken && JwtUtil.verify(jwtToken) && username != null) {
                     if(requestURI.startsWith("/api")) {
                         String turnstile = request.getHeader("turnstile");
-                        //log.info("turnstile: {}", turnstile);
+                        log.info("turnstile: {}", turnstile);
                         boolean pass = VerUtils.turnstile(turnstile, appConfigService.getSecretKey());
                         if(!pass) {
+                            log.error("turnstile验证未通过");
                             responseError(request, response,400,"验证未通过");
                             return false;
                         }

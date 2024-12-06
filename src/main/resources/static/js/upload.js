@@ -1,5 +1,5 @@
 import { setFileExplare, getFileExplare } from "./common.js";
-import { showAlert } from "./iconBtn.js";
+import { showAlert } from "./utils/component.js";
 
 const input = document.getElementById('fileInput');
 const container = document.getElementById('pre-container');

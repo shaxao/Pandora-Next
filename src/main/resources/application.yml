@@ -25,6 +25,9 @@ spring:
 #      servlet:
 #        content-type: text/html
     mode: HTML5
+  mvc:
+    media-types:
+      js: application/javascript
   servlet:
     multipart:
       max-file-size: 10MB

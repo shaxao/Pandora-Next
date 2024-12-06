@@ -1,8 +1,8 @@
 import { models, baseUrl, getCookie, AUTH_TOKEN, audioKey, setIsMoreChat, getIsMoreChat, audioUrl, _turnstileCb, getFileExplare, isOnlyWeb, scrollChat, getOpenaiBaseUrl, getAuthToken, Message, setActiveSessionId, getActiveSessionId, setCurrentActiveChatBox, getCurrentActiveChatBox, loadFromLocalStorage, API_URL, API_KEY, saveToLocalStorage } from "./common.js";
-import { showAlert } from "./iconBtn.js";
+import { showAlert } from "./utils/component.js";
 import { globalModeSettings } from "./setup.js";
 import { resetPreview, getImagePreviewSrc, getUploadFile, setImagePreviewSrc, setUploadFile } from "./upload.js";
-import { fetchResults, postResults, fetchGetResults, postAudiceResults, postMessage, loadImage } from './utils/request.js'
+import { fetchResults, postResults, fetchGetResults, postAudiceResults, postMessage, loadImage, http } from './utils/request.js'
 import { modelState } from './store.js'
 export function createMenu(sessionTitle) {
   let menuIcon = document.createElement('span');
@@ -205,7 +205,7 @@ async function handleMessageStream(reader, replyElement, chatBoxOne) {
 }
 
 // 4. 优化UI创建函数
-const createUIElement = ({type, className, attributes = {}, children = []}) => {
+const createUIElement = ({ type, className, attributes = {}, children = [] }) => {
   const element = document.createElement(type);
   if (className) element.className = className;
 
@@ -358,42 +358,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
-
+  // 在fetchSessionData函数开始处添加加载动画
   async function fetchSessionData() {
-    var myHeaders = new Headers();
-    myHeaders.append("Authorization", "Bearer " + auth_token);
-    myHeaders.append("Accept", "*/*");
-    myHeaders.append("Host", "chat.oaifree.com");
-    myHeaders.append("Connection", "keep-alive");
+    // 显示加载动画
+    const sessionList = document.getElementById('session-list');
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'session-loading-container';
+    loadingContainer.style.display = 'block';
 
-    var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow'
-    };
-
-    if (openaiBaseUrl === '' || openaiBaseUrl === null) {
-      try {
-
-      } catch (error) {
-        onsole.log('error', error)
-      }
-      const turnstile = await _turnstileCb();
-      const data = await fetchGetResults(`${baseUrl}/api/findTitle/0/28`, getCookie(AUTH_TOKEN), turnstile);
-      updateSessionTitle(data.data);
-    } else {
-      fetch(openaiBaseUrl + "/backend-api/conversations?offset=0&limit=28&order=updated", requestOptions)
-          .then(response => response.json())
-          .then(result => {
-            // console.log(result);
-            updateSessionTitle(result.items);
-          })
-          .catch(error => console.log('error', error));
+    // 添加3个加载占位符
+    for (let i = 0; i < 3; i++) {
+      const loadingItem = document.createElement('div');
+      loadingItem.className = 'session-loading';
+      loadingContainer.appendChild(loadingItem);
     }
 
+    sessionList.appendChild(loadingContainer);
 
+    try {
+      // 原有的数据请求逻辑
+      if (openaiBaseUrl === '' || openaiBaseUrl === null) {
+        const turnstile = await _turnstileCb();
+        const data = await fetchGetResults(`${baseUrl}/api/findTitle/0/28`, getCookie(AUTH_TOKEN), turnstile);
+        // 数据加载完成后,移除加载动画
+        loadingContainer.remove();
+        updateSessionTitle(data.data);
+      } else {
+        const response = await fetch(openaiBaseUrl + "/backend-api/conversations?offset=0&limit=28&order=updated", requestOptions);
+        const result = await response.json();
+        // 数据加载完成后,移除加载动画
+        loadingContainer.remove();
+        updateSessionTitle(result.items);
+      }
+    } catch (error) {
+      showAlert('请求标题失败！', false);
+      // 发生错误时也要移除加载动画
+      loadingContainer.remove();
+    }
   }
+
 
   function updateSessionTitle(sessions) {
     sessions.forEach((session, index) => {
@@ -496,14 +499,52 @@ document.addEventListener("DOMContentLoaded", function () {
   /**
    * 聊天记录读取
    */
+  // 在fetchAndDisplayMessages函数中添加加载动画
   async function fetchAndDisplayMessages(id, chatBox) {
-    if (openaiBaseUrl === '' || openaiBaseUrl === null) {
-      const turnstile = await _turnstileCb();
-      const data = await fetchGetResults(`${baseUrl}/api/findConver/${id}`, getCookie(AUTH_TOKEN), turnstile);
-      displayMessages(data.data, chatBox);
-    } else {
-      const data = await fetchGetResults(`${openaiBaseUrl}/backend-api/conversation/${id}`, auth_token);
-      displayMessages(data.mapping, chatBox);
+    // 显示加载动画
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'chat-loading-container';
+    loadingContainer.style.display = 'block';
+
+    // 创建3个加载气泡
+    for (let i = 0; i < 3; i++) {
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-loading-bubble';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'chat-loading-avatar';
+
+      const content = document.createElement('div');
+      content.className = 'chat-loading-content';
+
+      // 添加3条加载中的文本行
+      for (let j = 0; j < 3; j++) {
+        const line = document.createElement('div');
+        line.className = 'chat-loading-line';
+        content.appendChild(line);
+      }
+
+      bubble.appendChild(avatar);
+      bubble.appendChild(content);
+      loadingContainer.appendChild(bubble);
+    }
+
+    chatBox.appendChild(loadingContainer);
+
+    try {
+      if (openaiBaseUrl === '' || openaiBaseUrl === null) {
+        const turnstile = await _turnstileCb();
+        const data = await fetchGetResults(`${baseUrl}/api/findConver/${id}`, getCookie(AUTH_TOKEN), turnstile);
+        loadingContainer.remove();
+        displayMessages(data.data, chatBox);
+      } else {
+        const data = await fetchGetResults(`${openaiBaseUrl}/backend-api/conversation/${id}`, auth_token);
+        loadingContainer.remove();
+        displayMessages(data.mapping, chatBox);
+      }
+    } catch (error) {
+      console.log('error', error);
+      loadingContainer.remove();
     }
   }
 
@@ -605,7 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
     createIcon(replyElement, receiveMessageContainer, chatBox, message);
   }
 
-  // 解析消息文本，区分代码块和普通文本
+  // 解析消息�����本，区分代码块和普通文本
   function parseMessageSections(text) {
     const sections = [];
     const lines = text.split(/(```)/);
@@ -739,6 +780,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   fetchDefaultContent(getCurrentActiveChatBox());
+
 
 
   document.getElementById('addChat').addEventListener('click', function () {
@@ -1095,7 +1137,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function getCurrentTimeString() {
     const now = new Date();
     return now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + "-" +
-        now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+      now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
   }
 
 
@@ -1381,7 +1423,7 @@ document.addEventListener("DOMContentLoaded", function () {
           signal: controller.signal
         });
       } else {
-        const turnstile = await _turnstileCb();
+        const turnstile = await _turnstileCb("base");
         resp = await fetch(url, {
           method: 'POST',
           body: formData,
@@ -1545,7 +1587,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // 将 errorMessageText 转换为 JSON 对象
                 const errorJson = JSON.parse(errorMessageText);
 
-                // 提取 messageId 的值
+                // 提�� messageId 的值
                 const messageId = errorJson.messageId;
                 console.log('parentId:', messageId);
 
@@ -1587,14 +1629,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 globalSessionTitle.setAttribute('data-session-id', conversationId);
                 // const url = `${globalModeSettings.webProxyUrl}/backend-api/conversation/gen_title/${conversationId}`;
                 // const payloadString = '{"message_id": "' + messageId + '"}';
-                const titleVo = {
+                const titleVo = JSON.stringify({
                   messageId: messageId,
                   conversationId: conversationId,
-                  isFirstFlag: true,
+                  firstFlag: true,
                   apiKey: globalModeSettings.accessToken,
                   baseUrl: globalModeSettings.webProxyUrl,
-                  isWeb: true
-                };
+                  web: false,
+                  content: a
+                });
                 try {
                   const turnstile = await _turnstileCb();
                   const data = await postResults(`${baseUrl}/api/gen_title`, getCookie(AUTH_TOKEN), titleVo, turnstile);
@@ -1612,26 +1655,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 } catch (error) {
                   isFirstFlag = true;
                   console.error('web标题生成异常', error);
+                  showAlert('标题生成异常:', false)
                 }
               }
               // 检查元素数量是否为 1
               if (messageJson.isFirstFlag && !getIsMoreChat()) {
-                //console.log('glabalModelSettoong', globalModeSettings);
-                const apiKey = globalModeSettings.apiKey;
-                const url = globalModeSettings.baseUrl;
-                console.log(apiKey);
-                const titleVo = {
-                  messageId: messageId,
-                  conversationId: getActiveSessionId(),
-                  isFirstFlag: messageJson.isFirstFlag,
-                  apiKey: apiKey,
-                  baseUrl: url,
-                  isWeb: false,
-                  content: a
-                };
+                const conversationId = getActiveSessionId();
                 try {
-                  const turnstile = await _turnstileCb();
-                  const data = await postResults(`${baseUrl}/api/gen_title`, getCookie(AUTH_TOKEN), titleVo, turnstile);
+                  //console.log('glabalModelSettoong', globalModeSettings);
+                  const titleData = {
+                    messageId: messageId,
+                    conversationId: conversationId,
+                    firstFlag: true,
+                    apiKey: globalModeSettings.accessToken,
+                    baseUrl: globalModeSettings.webProxyUrl,
+                    web: false,
+                    content: a
+                  };
+
+                  const data = await http.post('/api/gen_title', titleData);
                   const existingTitleTextSpan = globalSessionTitle.querySelector('#title-text');
                   if (existingTitleTextSpan) {
                     isFirstFlag = false;
@@ -1646,6 +1688,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 } catch (error) {
                   isFirstFlag = true;
                   console.error('标题生成异常:', error);
+                  showAlert('标题生成异常:', false)
                 } finally {
                   receiveMessageContainer.setAttribute('message-id', messageId);
                   break;
@@ -1775,10 +1818,10 @@ document.addEventListener("DOMContentLoaded", function () {
       // formData.append("message", message);
       // formData.append("selectVoice", selectVoice);
       const formData = JSON.stringify(
-          {
-            message: message,
-            selectVoice: selectVoice
-          }
+        {
+          message: message,
+          selectVoice: selectVoice
+        }
       )
       if (isOnlyWeb) {
         url = `${audioUrl}/v1/audio/speech`;
@@ -2225,8 +2268,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <span class="flex h-[30px] w-[30px] items-center justify-center">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 1024 1024" class="icon-md-heavy">
         <path fill="currentColor" d="M414.254545 595.781818H172.218182c-86.109091 0-155.927273-67.490909-155.927273-148.945454V218.763636C16.290909 137.309091 86.109091 69.818182 172.218182 69.818182h242.036363c86.109091 0 155.927273 67.490909 155.927273 148.945454v228.072728c-2.327273 81.454545-69.818182 148.945455-155.927273 148.945454zM172.218182 137.309091c-48.872727 0-86.109091 34.909091-86.109091 81.454545v228.072728c0 44.218182 39.563636 81.454545 86.109091 81.454545h242.036363c48.872727 0 86.109091-34.909091 86.109091-81.454545V218.763636c0-44.218182-39.563636-81.454545-86.109091-81.454545H172.218182z" fill="#666666"></path>
-        <path fill="currentColor" d="M837.818182 861.090909H595.781818c-90.763636 0-155.927273-69.818182-155.927273-167.563636v-141.963637c0-18.618182 16.290909-34.909091 34.909091-34.909091s34.909091 16.290909 34.909091 34.909091v141.963637c0 58.181818 34.909091 100.072727 86.109091 100.072727H837.818182c48.872727 0 86.109091-34.909091 86.109091-81.454545v-228.072728c0-44.218182-39.563636-81.454545-86.109091-81.454545H544.581818c-18.618182 0-34.909091-16.290909-34.909091-34.909091s16.290909-34.909091 34.909091-34.909091H837.818182c86.109091 0 155.927273 67.490909 155.927273 148.945455v228.072727c0 86.109091-69.818182 151.272727-155.927273 151.272727zM262.981818 847.127273c-102.4 0-183.854545-74.472727-183.854545-167.563637 0-18.618182 16.290909-34.909091 34.909091-34.909091s34.909091 16.290909 34.909091 34.909091c0 55.854545 51.2 100.072727 116.363636 100.072728 18.618182 0 34.909091 16.290909 34.909091 34.909091-4.654545 18.618182-18.618182 32.581818-37.236364 32.581818zM861.090909 281.6c-18.618182 0-34.909091-16.290909-34.909091-34.909091 0-55.854545-51.2-100.072727-116.363636-100.072727-18.618182 0-34.909091-16.290909-34.909091-34.909091s16.290909-34.909091 34.909091-34.909091c102.4 0 183.854545 74.472727 183.854545 167.563636 2.327273 20.945455-11.636364 37.236364-32.581818 37.236364z"></path>
-        <path fill="currentColor" d="M660.945455 686.545455h-39.563637l88.436364-165.236364h41.890909l88.436364 165.236364h-41.89091l-23.272727-46.545455h-93.090909l-20.945454 46.545455z m69.818181-139.636364l-37.236363 72.145454H768l-37.236364-72.145454z"></path>
+        <path fill="currentColor" d="M837.818182 861.090909H595.781818c-90.763636 0-155.927273-69.818182-155.927273-167.563636v-141.963637c0-18.618182 16.290909-34.909091 34.909091-34.909091s34.909091 16.290909 34.909091 34.909091v141.963637c0 58.181818 34.909091 100.072727 86.109091 100.072727H837.818182c48.872727 0 86.109091-34.909091 86.109091-81.454545v-228.072728c0-44.218182-39.563636-81.454545-86.109091-81.454545H544.581818c-18.618182 0-34.909091-16.290909-34.909091-34.909091s16.290909-34.909091 34.909091-34.909091H837.818182c86.109091 0 155.927273 67.490909 155.927273 148.945455v228.072727c0 86.109091-69.818182 151.272727-155.927273 151.272727zM262.981818 847.127273c-102.4 0-183.854545-74.472727-183.854545-167.563637 0-18.618182 16.290909-34.909091 34.909091-34.909091s34.909091 16.290909 34.909091 34.909091c0 55.854545 51.2 100.072727 116.363636 100.072728 18.618182 0 34.909091 16.290909 34.909091 34.909091-4.654545 18.618182-18.618182 32.581818-37.236364 32.581818zM861.090909 281.6c-18.618182 0-34.909091-16.290909-34.909091-34.909091 0-55.854545-51.2-100.072727-116.363636-100.072727-18.618182 0-34.909091-16.290909-34.909091-34.909091s16.290909-34.909091 34.909091-34.909091c102.4 0 183.854545 74.472727 183.854545 167.563636 2.327273 20.945455-11.636364 37.236364-32.581818 37.236364zM660.945455 686.545455h-39.563637l88.436364-165.236364h41.890909l88.436364 165.236364h-41.89091l-23.272727-46.545455h-93.090909l-20.945454 46.545455z m69.818181-139.636364l-37.236363 72.145454H768l-37.236364-72.145454z"></path>
         <path fill="currentColor" d="M286.254545 200.145455h23.272728v39.563636H395.636364V349.090909h-23.272728v-13.963636h-62.836363v76.8h-23.272728v-76.8H223.418182v13.963636h-23.272727v-109.381818h86.10909V200.145455z m-62.836363 116.363636h62.836363v-55.854546H223.418182v55.854546z m86.109091 0H372.363636v-55.854546h-62.836363v55.854546z"></path>
       </svg>
     </span>
@@ -2788,14 +2830,14 @@ document.addEventListener("DOMContentLoaded", function () {
         body: formData,
         redirect: 'follow'
       })
-          .then(response => response.json())
-          .then(data => {
-            console.log('语音：', data);
-            messageInput.value = data.text;
-          })
-          .catch((error) => {
-            showAlert('请求错误: ' + error, false);
-          });
+        .then(response => response.json())
+        .then(data => {
+          console.log('语音：', data);
+          messageInput.value = data.text;
+        })
+        .catch((error) => {
+          showAlert('请求错误: ' + error, false);
+        });
     } else {
       formData.append("audio", audioBlob, "audio.wav");
       const turnstile = await _turnstileCb();
@@ -2807,14 +2849,14 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         body: formData
       })
-          .then(response => response.json())
-          .then(data => {
-            showAlert(data.msg, true);
-            messageInput.value = data.data;
-          })
-          .catch((error) => {
-            showAlert('请求错误: ' + error, false);
-          });
+        .then(response => response.json())
+        .then(data => {
+          showAlert(data.msg, true);
+          messageInput.value = data.data;
+        })
+        .catch((error) => {
+          showAlert('请求错误: ' + error, false);
+        });
     }
   }
 

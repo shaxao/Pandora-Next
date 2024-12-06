@@ -116,7 +116,7 @@ public class ChatUserServiceImpl extends ServiceImpl<ChatUserMapper, ChatUser>
         loginUserVo.setAvatar(getImgBaseUrl(chatUser.getAvatar() == null ? "" : chatUser.getAvatar()));
         loginUserVo.setUsername(username);
         loginUserVo.setEmail(chatUser.getEmail());
-
+        loginUserVo.setUserStatus(chatUser.getUserStatus());
         return AjaxResult.success("登录成功", loginUserVo);
     }
     private String getImgBaseUrl(String imageUrl) {

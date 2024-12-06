@@ -133,7 +133,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public String genTitle(TitleVo titleVo) {
-        if(titleVo.getIsWeb()) {
+        if(titleVo.getWeb()) {
             JSONObject toJsonObject = new JSONObject();
             toJsonObject.putOnce("message_id", titleVo.getMessageId());
             String params = toJsonObject.toString();

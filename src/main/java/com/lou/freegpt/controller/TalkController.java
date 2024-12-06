@@ -5,10 +5,14 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import com.google.common.collect.PeekingIterator;
 import com.lou.freegpt.api.xunfei.AudioStream;
+import com.lou.freegpt.common.anntation.LogInterface;
 import com.lou.freegpt.domain.AudioRequest;
 import com.lou.freegpt.domain.MessageEntity;
+import com.lou.freegpt.enums.BusinessType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -53,6 +57,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+
+
 
 @RestController
 @RequestMapping("/api")
@@ -69,61 +76,6 @@ public class TalkController {
     @Autowired
     private ExecutorService executorService;
 
-//    @PostMapping("/base")
-//    public Mono<ServerResponse> talkTest(
-//            @RequestPart(value = "file", required = false) Mono<FilePart> fileMono,
-//            @RequestParam("messageJson") String messageJson,
-//            @RequestParam("globalSetJson") String globalSetJson) {
-//        fileMono = (fileMono == null) ? Mono.empty() : fileMono;
-//        MessageVo messageVo = JSONUtil.toBean(messageJson, MessageVo.class);
-//        System.out.println("接收到的消息内容: " + messageVo.getContent() + ", 模型: " + messageVo.getModel() + ", 全局设置: " + globalSetJson);
-//
-//        return fileMono.flatMap(file -> {
-//            try {
-//                return file.content()
-//                        .map(dataBuffer -> {
-//                            byte[] bytes = new byte[dataBuffer.readableByteCount()];
-//                            dataBuffer.read(bytes);
-//                            return bytes;
-//                        })
-//                        .reduce((bytes1, bytes2) -> {
-//                            byte[] combined = new byte[bytes1.length + bytes2.length];
-//                            System.arraycopy(bytes1, 0, combined, 0, bytes1.length);
-//                            System.arraycopy(bytes2, 0, combined, bytes1.length, bytes2.length);
-//                            return combined;
-//                        })
-//                        .flatMap(bytes -> {
-//                            String fileEncoder = Base64.getEncoder().encodeToString(bytes);
-//                            return processMessageAndRespond(messageVo, fileEncoder, globalSetJson);
-//                        });
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                return Mono.error(new RuntimeException("图片加载失败"));
-//            }
-//        }).switchIfEmpty(processMessageAndRespond(messageVo, "", globalSetJson));
-//    }
-//
-//    private Mono<ServerResponse> processMessageAndRespond(MessageVo messageVo, String fileEncoder, String globalSetJson) {
-//        if (messageVo.getContent() != null && !messageVo.getContent().isEmpty()) {
-//            return ServerResponse.ok()
-//                    .contentType(MediaType.TEXT_EVENT_STREAM)
-//                    .body(BodyInserters.fromServerSentEvents(processMessage(messageVo, fileEncoder, globalSetJson)
-//                            .map(content -> ServerSentEvent.builder(content).build())));
-//        }
-//        return ServerResponse.ok().build();
-//    }
-//
-//    private Flux<ServerSentEvent<String>> processMessage(MessageVo messageVo, String fileEncoder, String globalSetJson) {
-//        if (messageVo.getModel().equals(ModelEnum.PERSON_ONE.getModels()) || messageVo.getModel().equals(ModelEnum.PERSON_TWO.getModels())) {
-//            return Flux.empty();
-//        } else {
-//            return requestUtils.streamRequestTest(messageVo, fileEncoder, globalSetJson)
-//                    .map(data -> ServerSentEvent.builder(data).build());
-//        }
-//    }
-
-
-
     /**
      * 接受消息内容并回复
      * @param file
@@ -131,67 +83,69 @@ public class TalkController {
      */
     @PostMapping("/base")
     public void talkTest(@RequestParam(value = "file", required = false) MultipartFile file,
-                         @RequestParam("messageJson")String messageJson,
+                         @RequestParam("messageJson") String messageJson,
                          @RequestParam("globalSetJson") String globalSetJson,
                          HttpServletResponse response,
-                         HttpServletRequest request){
+                         HttpServletRequest request) {
+        log.info("接收文本请求数据:{}", messageJson);
+        // 提前解析消息对象,避免重复解析
         MessageVo messageVo = JSONUtil.toBean(messageJson, MessageVo.class);
-        System.out.println("接收到的消息内容: " + messageVo.getContent() + ",模型:" + messageVo.getModel() + "文件:" + file + ",全局设置:" + globalSetJson);
-        String fileEncoder = "";
-        if(file != null && (!file.isEmpty() || file.getSize() != 0)) {
-            try {
-                fileEncoder = Base64Encoder.encode(file.getBytes());
-                System.out.println(fileEncoder);
-            } catch (IOException e) {
-               log.error("图片加载失败: {}", e.getMessage());
-              //  return AjaxResult.fail("图片加载失败");4015efcd15b84d7ea5c17f9d27b0ef8a
-            }
-        }
-        if (messageVo.getContent() != null && !messageVo.getContent().isEmpty()) {
-            String reply = "";
-            try {
-                // 提交任务1
-                Runnable task1 = () -> {
-                    messageDao.insertMessage(messageVo, "user", "text");
-                };
-                executorService.submit(task1);
 
-                // 提交任务2
-                Runnable task2 = () -> {
-                    Map<String, String> params = new HashMap<>();
-                    params.put("message.updateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                    params.put("children", messageVo.getMessageId());
-                    messageDao.updateById(messageVo.getParentId(), params);
-                };
-                executorService.submit(task2);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if(messageVo.getModel().equals(ModelEnum.PERSON_ONE.getModels()) || messageVo.getModel().equals(ModelEnum.PERSON_TWO.getModels())) {
+        // 使用 CompletableFuture 异步处理文件编码
+        CompletableFuture<String> fileEncoderFuture = CompletableFuture.supplyAsync(() -> {
+            if (file != null && !file.isEmpty()) {
                 try {
-                    requestUtils.textRequest(messageVo.getContent(), messageVo.getModel(), response, fileEncoder);
+                    return Base64Encoder.encode(file.getBytes());
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    log.error("File encoding failed", e);
+                    return "";
                 }
-            }else {
-                //reply = chatService.processMessage(message,model,fileEncoder);
-                requestUtils.streamRequestTest(messageVo,request, response, fileEncoder, globalSetJson);
-                // return AjaxResult.success("消息顺利返回", reply);
             }
-        } else {
+            return "";
+        }, executorService);
+
+        // 异步保存消息
+        CompletableFuture<Void> saveMessageFuture = CompletableFuture.runAsync(() -> {
             try {
-                response.setCharacterEncoding("UTF-8"); // 设置字符编码为UTF-8
-                response.setContentType("application/json; charset=UTF-8"); // 设置内容类型为JSON，并指定字符编
-                response.getWriter().write("消息不能为空" + "\n\n");
-                response.flushBuffer();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                messageDao.insertMessage(messageVo, "user", "text");
+
+                Map<String, String> params = new HashMap<>();
+                params.put("message.updateTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                params.put("children", messageVo.getMessageId());
+                messageDao.updateById(messageVo.getParentId(), params);
+            } catch (Exception e) {
+                log.error("Save message failed", e);
             }
-            System.out.println("消息为空");
-           // return AjaxResult.fail("消息不能为空");
+        }, executorService);
+
+        try {
+            // 等待文件编码完成,设置超时时间
+            String fileEncoder = fileEncoderFuture.get(5, TimeUnit.SECONDS);
+
+            // 根据模型类型处理请求
+            if (messageVo.getModel().equals(ModelEnum.PERSON_ONE.getModels()) ||
+                messageVo.getModel().equals(ModelEnum.PERSON_TWO.getModels())) {
+                requestUtils.textRequest(messageVo.getContent(), messageVo.getModel(), response, fileEncoder);
+            } else {
+                requestUtils.streamRequestTest(messageVo, request, response, fileEncoder, globalSetJson);
+            }
+
+        } catch (Exception e) {
+            log.error("Request processing failed", e);
+            writeErrorResponse(response, "处理请求失败");
         }
     }
 
+    private void writeErrorResponse(HttpServletResponse response, String message) {
+        try {
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write(message + "\n\n");
+            response.flushBuffer();
+        } catch (IOException e) {
+            log.error("Write error response failed", e);
+        }
+    }
 
     /**
      * 生成图片
@@ -251,9 +205,10 @@ public class TalkController {
     }
 
     @PostMapping("/gen_title")
+    @LogInterface(title = "标题生成", businessType = BusinessType.OTHER)
     public AjaxResult genTitle(@RequestBody TitleVo titleVo) {
         log.info("titleVo:{}", titleVo.toString());
-        if(!titleVo.getIsFirstFlag()){
+        if(!titleVo.getFirstFlag()){
             AjaxResult.error();
         }
         String title = chatService.genTitle(titleVo);
@@ -283,9 +238,9 @@ public class TalkController {
         MessageVo messageVo = JSONUtil.toBean(messageJson, MessageVo.class);
         System.out.println("接收到的消息内容: " + messageVo.getContent() + ",模型:" + messageVo.getModel() + ",全局设置:" + globalSetJson);
         if (messageVo.getContent() != null && !messageVo.getContent().isEmpty()) {
-             // reply = chatService.processMessage(message,model,fileEncoder);
-             requestUtils.streamRequestTest(messageVo, request, response, null, globalSetJson);
-             // return AjaxResult.success("消息顺利返回", reply);
+            // reply = chatService.processMessage(message,model,fileEncoder);
+            requestUtils.streamRequestTest(messageVo, request, response, null, globalSetJson);
+            // return AjaxResult.success("消息顺利返回", reply);
         } else {
             try {
                 response.setCharacterEncoding("UTF-8"); // 设置字符编码为UTF-8
@@ -381,4 +336,3 @@ public class TalkController {
 
 
 }
-

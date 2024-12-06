@@ -16,7 +16,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:8080",
+                "http://localhost",
                 "http://127.0.0.1:5500",
                 "https://chat.qipusong.site",
                 "http://qjypzb.natappfree.cc",

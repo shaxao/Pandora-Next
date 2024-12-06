@@ -13,6 +13,7 @@ body {
   --sider-background-color: #f6f6f6;
   --click: #535050;
   --gizmo-bot-avatar-color: #ececec;
+  --icon-color: #000000;
 }
 
 /* body {
@@ -46,14 +47,18 @@ body.dark-theme {
   --sider-background-color: #0e0e0e;
   --click: #0e0e0e;
   --gizmo-bot-avatar-color: #424242;
+  --icon-color: #ffffff;
 }
 
 body {
+  margin: 0;
+  padding: 0;
   font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  width: 100vw;
   background-color: var(--background-color);
   color: var(--color);
   overflow: hidden;
@@ -70,30 +75,656 @@ body {
 
 :root {
   --home-width: 100vw;
-  --home-height: 100%;
+  --home-height: 100vh;
   --home-max-width: 100vw;
-  --home-max-height: 100%;
+  --home-max-height: 100vh;
+  --sidebar-width: 260px;
+  --chat-container-width: calc(100% - var(--sidebar-width));
 }
 
+/* 添加响应式基础设置 */
+:root {
+  --home-width: 100vw;
+  --home-height: 100vh;
+  --sidebar-width: 260px;
+  --chat-container-width: calc(100% - var(--sidebar-width));
+}
 
+/* 基础响应式设置 */
+@media screen and (max-width: 768px) {
+  :root {
+    --sidebar-width: 260px;
+    --chat-container-width: 100%;
+  }
+
+  .home {
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    background-color: var(--sider-background-color);
+    overflow-y: auto;
+  }
+
+  .sidebar.active {
+    left: 0;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .logo {
+    padding: 10px 5px;
+  }
+
+  .sidebar-menu {
+    padding: 10px;
+  }
+
+  .session-list {
+    max-height: calc(100vh - 200px);
+  }
+
+  .user-set {
+    margin-top: auto;
+    padding: 10px;
+  }
+
+  .chat-container {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    padding: 10px;
+    background-color: var(--background-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .menu-toggle svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--color);
+  }
+
+  .menu-toggle:hover {
+    background-color: var(--hover-background-color);
+  }
+
+  .menu-toggle:active {
+    transform: scale(0.95);
+  }
+
+  .menu-toggle.active svg {
+    transform: rotate(180deg);
+  }
+
+  .menu-toggle.active {
+    left: 270px;
+  }
+}
+
+/* 移动端显示菜单按钮 */
+@media screen and (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+    /* 在移动端显示 */
+  }
+
+  .menu-toggle.active {
+    left: 270px;
+  }
+
+  /* 添加菜单按钮的动画效果 */
+  .menu-toggle:hover {
+    background-color: var(--hover-background-color);
+  }
+
+  .menu-toggle:active {
+    transform: scale(0.95);
+  }
+
+  /* 当侧边栏打开时,菜单按钮的样式 */
+  .menu-toggle.active svg {
+    transform: rotate(180deg);
+  }
+}
+
+/* 大屏幕隐藏菜单按钮 */
+@media screen and (min-width: 769px) {
+  .menu-toggle {
+    display: none;
+  }
+}
+
+/* 平板设备 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+
+  .sidebar {
+    width: var(--sidebar-width);
+  }
+
+  .chat-container {
+    width: var(--chat-container-width);
+  }
+
+  .input-area {
+    min-height: 28%;
+  }
+}
+
+/* 会话加载动画样式 */
+.session-loading {
+  padding: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.session-loading-item {
+  background: var(--background-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.session-loading-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.session-loading-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.session-loading-item:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.session-loading-item:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.loading-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.session-loading-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--hover-background-color);
+  animation: pulse 1.5s infinite;
+}
+
+.session-loading-text {
+  flex: 1;
+  max-width: 200px;
+}
+
+.loading-line {
+  height: 12px;
+  background: var(--hover-background-color);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  animation: shimmer 2s infinite linear;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
+  animation: shine 2s infinite linear;
+}
+
+.loading-line-short {
+  width: 60%;
+}
+
+.loading-right {
+  margin-left: 8px;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hover-background-color);
+  animation: dotPulse 1.5s infinite;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes shine {
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes dotPulse {
+
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* 暗色模式适配 */
+body.dark-theme .session-loading-item {
+  background: var(--dark-background);
+}
+
+body.dark-theme .session-loading-icon,
+body.dark-theme .loading-line,
+body.dark-theme .loading-dot {
+  background: var(--hover-background-color);
+}
+
+/* 聊天记录加载动画 */
+.chat-loading-container {
+  padding: 20px;
+  display: none;
+}
+
+.chat-loading-bubble {
+  background: var(--background-color);
+  border: 1px solid var(--border-light);
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-loading-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #e9ecef;
+  background-image: linear-gradient(to right,
+      #e9ecef 0%,
+      #dee2e6 20%,
+      #e9ecef 40%,
+      #e9ecef 100%);
+  animation: shimmer 1.5s infinite linear;
+  flex-shrink: 0;
+}
+
+.chat-loading-content {
+  flex: 1;
+}
+
+.chat-loading-line {
+  height: 12px;
+  background: #e9ecef;
+  background-image: linear-gradient(to right,
+      #e9ecef 0%,
+      #dee2e6 20%,
+      #e9ecef 40%,
+      #e9ecef 100%);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.chat-loading-line:last-child {
+  width: 80%;
+}
+
+/* 暗色模式样式 */
+body.dark-theme .chat-loading-avatar,
+body.dark-theme .chat-loading-line {
+  background: #2d2d2d;
+  background-image: linear-gradient(to right,
+      #2d2d2d 0%,
+      #3d3d3d 20%,
+      #2d2d2d 40%,
+      #2d2d2d 100%);
+}
+
+/* 会话加载动画样式 */
+.session-loading {
+  padding: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.session-loading-item {
+  background: var(--background-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.session-loading-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.session-loading-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.session-loading-item:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.session-loading-item:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.loading-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.loading-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--hover-background-color);
+  animation: pulse 1.5s infinite;
+}
+
+.loading-content {
+  flex: 1;
+}
+
+.loading-line {
+  height: 12px;
+  background: var(--hover-background-color);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
+  animation: shimmer 2s infinite;
+}
+
+.loading-line-short {
+  width: 60%;
+}
+
+.loading-right {
+  margin-left: 8px;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hover-background-color);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* 暗色模式适配 */
+body.dark-theme .session-loading-item {
+  background: var(--dark-background);
+}
+
+body.dark-theme .loading-icon,
+body.dark-theme .loading-line,
+body.dark-theme .loading-dot {
+  background: var(--hover-background-color);
+}
+
+/* 修改加载动画样式 */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.session-loading {
+  /* 调整颜色使对比度更强 */
+  background: #e9ecef;
+  background-image: linear-gradient(to right,
+      #e9ecef 0%,
+      #dee2e6 20%,
+      #e9ecef 40%,
+      #e9ecef 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 104px;
+  border-radius: 15px;
+  height: 45px;
+  margin-bottom: 8px;
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: shimmer;
+  animation-timing-function: linear;
+}
+
+/* 暗色模式下的加载动画样式 */
+body.dark-theme .session-loading {
+  background: #2d2d2d;
+  background-image: linear-gradient(to right,
+      #2d2d2d 0%,
+      #3d3d3d 20%,
+      #2d2d2d 40%,
+      #2d2d2d 100%);
+}
+
+.session-loading-container {
+  padding: 10px;
+  display: none;
+}
 
 .home {
-  box-shadow: 50px 50px 50px 100px rgba(0, 0, 0, .1);
-  width: var(--home-width);
-  height: var(--home-height);
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   overflow: hidden;
   box-sizing: border-box;
   justify-content: center;
   flex-wrap: wrap;
   transition: all 0.5s ease;
-  margin-bottom: 9px;
-  margin-top: -9px;
-  margin-left: -30px;
-  margin-right: -30px;
   font-feature-settings: normal;
   font-family: Söhne, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Helvetica Neue, Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-
 }
 
 /**
@@ -370,7 +1001,7 @@ body {
 }
 
 /* 基础样式 */
-.toggle-btn,
+.admin-toggle-btn,
 .toggle-code {
   margin-left: 5px;
   background-color: transparent;
@@ -386,7 +1017,7 @@ body {
 }
 
 /* 箭头的上半部 */
-.toggle-btn::before,
+.admin-toggle-btn::before,
 .toggle-code::before {
   content: '';
   display: block;
@@ -401,7 +1032,7 @@ body {
 }
 
 /* 箭头的下半部 */
-.toggle-btn::after,
+.admin-toggle-btn::after,
 .toggle-code::after {
   content: '';
   display: block;
@@ -415,14 +1046,14 @@ body {
   transition: translateY(0.15rem) rotate(0deg) translateZ(0px);
 }
 
-/* 鼠标悬浮时上下两部分同时向左弯曲形成箭头 */
-.toggle-btn:hover::before {
+/* 标悬浮时上下两部分同时向左弯曲形成箭头 */
+.admin-toggle-btn:hover::before {
   background-color: #0b0b0b;
   transform: rotate(-15deg);
   top: 1px;
 }
 
-.toggle-btn:hover::after {
+.admin-toggle-btn:hover::after {
   background-color: #0b0b0b;
   transform: rotate(15deg);
   bottom: 1px;
@@ -442,13 +1073,13 @@ body {
 }
 
 /* 固定的右箭头样式 */
-.toggle-btn.right-arrow::before {
+.admin-toggle-btn.right-arrow::before {
   background-color: #0b0b0b;
   transform: rotate(15deg);
   top: 1px;
 }
 
-.toggle-btn.right-arrow::after {
+.admin-toggle-btn.right-arrow::after {
   background-color: #0b0b0b;
   transform: rotate(-15deg);
   bottom: 1px;
@@ -802,7 +1433,7 @@ body {
 }
 
 
-/* 确认按钮的样式 */
+/* 确认钮的样式 */
 .confirm-button {
   margin-left: 5px;
   background-color: #4caf50;
@@ -1077,7 +1708,7 @@ body {
 }
 
 
-/* 下拉内容容器 */
+/* 下拉内容容 */
 .dropdown {
   position: relative;
   display: inline-block;
@@ -1328,4 +1959,373 @@ button:focus {
   font-size: 40px;
   font-weight: bold;
   cursor: pointer;
+}
+
+/* 输入区域响应式样式 */
+@media screen and (max-width: 768px) {
+  .input-area {
+    min-height: 25%;
+    padding: 5px;
+  }
+
+  /* 调整按钮容器样式 */
+  .dropdown {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  /* 调整插件按钮样式 */
+  .plugin-btn {
+    padding: 3px 10px;
+    font-size: 12px;
+    margin: 2px;
+    height: 30px;
+    min-width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .plugin-btn img {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 调整工具提示文本 */
+  .tooltip-text {
+    display: none;
+    /* 在移动端隐藏提示文本 */
+  }
+
+  /* 调整消息输入框 */
+  .message-input {
+    margin: 5px 0;
+  }
+
+  .message-label {
+    height: 100px;
+  }
+
+  .message-input-text {
+    font-size: 14px;
+    padding: 8px;
+    min-height: 40px;
+  }
+
+  /* 调整发送按钮 */
+  .message-input-button {
+    margin-top: 5px;
+  }
+
+  .send-button {
+    width: 50px;
+    height: 35px;
+    font-size: 14px;
+    margin-right: 5px;
+  }
+
+  /* 调整文件预览区域 */
+  #pre-container {
+    max-width: 100%;
+    margin: 5px;
+  }
+
+  /* 调整下拉菜单 */
+  .dropdown-content {
+    min-width: 150px;
+    max-height: 300px;
+    bottom: 35px;
+  }
+
+  /* 调整语言选择容器 */
+  .language-select-container {
+    width: 90%;
+    max-width: 300px;
+    padding: 8px;
+  }
+
+  .language-button {
+    padding: 8px 15px;
+    font-size: 11px;
+  }
+
+  /* 优化按钮点击区域 */
+  .plugin-btn,
+  .send-button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 调整按钮间距和布局 */
+  .icon-container {
+    gap: 8px;
+  }
+
+  .header-icon {
+    width: 35px !important;
+    height: 35px !important;
+    padding: 10px !important;
+  }
+}
+
+/* 平板设备优化 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .input-area {
+    min-height: 28%;
+  }
+
+  .plugin-btn {
+    padding: 4px 12px;
+    font-size: 13px;
+  }
+
+  .dropdown {
+    gap: 10px;
+  }
+
+  .message-label {
+    height: 120px;
+  }
+}
+
+/* 修改加载动画样式 */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.session-loading {
+  /* 调整颜色使对比度更强 */
+  background: #e9ecef;
+  background-image: linear-gradient(to right,
+      #e9ecef 0%,
+      #dee2e6 20%,
+      #e9ecef 40%,
+      #e9ecef 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 104px;
+  border-radius: 15px;
+  height: 45px;
+  margin-bottom: 8px;
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: shimmer;
+  animation-timing-function: linear;
+}
+
+/* 暗色模式下的加载动画样式 */
+body.dark-theme .session-loading {
+  background: #2d2d2d;
+  background-image: linear-gradient(to right,
+      #2d2d2d 0%,
+      #3d3d3d 20%,
+      #2d2d2d 40%,
+      #2d2d2d 100%);
+}
+
+/* 加载占位符容器 */
+.session-loading-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.session-loading-container.fade-out {
+  opacity: 0;
+}
+
+.loading-brain {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.brain-path {
+  fill: none;
+  stroke: var(--primary-color);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: drawBrain 3s ease-out infinite;
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 16px;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-dots {
+  display: inline-flex;
+}
+
+.dot {
+  animation: dotPulse 1.5s infinite;
+  margin-left: 2px;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.neural-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  background: var(--primary-color);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat 3s ease-in-out infinite;
+  animation-delay: var(--delay);
+  width: var(--size);
+  height: var(--size);
+}
+
+@keyframes drawBrain {
+  0% {
+    stroke-dashoffset: 800;
+    filter: drop-shadow(0 0 0px var(--primary-color));
+  }
+
+  50% {
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 3px var(--primary-color));
+  }
+
+  100% {
+    stroke-dashoffset: -800;
+    filter: drop-shadow(0 0 0px var(--primary-color));
+  }
+}
+
+@keyframes dotPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate(calc(cos(var(--delay)) * 50px),
+        calc(sin(var(--delay)) * 50px)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* 聊天记录加载动画 */
+.chat-loading-container {
+  padding: 20px;
+  display: none;
+}
+
+.chat-loading-bubble {
+  background: var(--background-color);
+  border: 1px solid var(--border-light);
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-loading-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #e9ecef;
+  background-image: linear-gradient(to right,
+      #e9ecef 0%,
+      #dee2e6 20%,
+      #e9ecef 40%,
+      #e9ecef 100%);
+  animation: shimmer 1.5s infinite linear;
+  flex-shrink: 0;
+}
+
+.chat-loading-content {
+  flex: 1;
+}
+
+.chat-loading-line {
+  height: 12px;
+  background: #e9ecef;
+  background-image: linear-gradient(to right,
+      #e9ecef 0%,
+      #dee2e6 20%,
+      #e9ecef 40%,
+      #e9ecef 100%);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.chat-loading-line:last-child {
+  width: 80%;
+}
+
+/* 暗色模式样式 */
+body.dark-theme .chat-loading-avatar,
+body.dark-theme .chat-loading-line {
+  background: #2d2d2d;
+  background-image: linear-gradient(to right,
+      #2d2d2d 0%,
+      #3d3d3d 20%,
+      #2d2d2d 40%,
+      #2d2d2d 100%);
+}
+
+/* 添加SVG图标主题样式 */
+.plugin-btn img {
+  filter: invert(var(--is-dark-theme));
+}
+
+body.dark-theme .plugin-btn img {
+  filter: invert(1);
 }

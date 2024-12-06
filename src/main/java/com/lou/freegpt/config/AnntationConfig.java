@@ -7,5 +7,5 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @Configuration
 @EnableAspectJAutoProxy
 @ComponentScan("com.lou.freegpt")
-public class AnntationConfig {
+public class   AnntationConfig {
 }

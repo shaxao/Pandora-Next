@@ -1,4 +1,3 @@
-
 export const models = ["gpt-4o", "gpt-4", "gpt-3.5-turbo", "gpt3.5-turbo-16k", "gpt-4-0314", "gpt-4-0613", "gpt-4-1106-preview", "gpt-4-32k", "gpt-4-turbo", "dall-e-3", "claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307", "llama3-70b-8192", "deepseek-coder", "deepseek-chat", "SparkDesk-v3.5", "gemini-pro", "gemini-pro-v", "glm-4-all", "qwen-turbo", "qwen-plus", "qwen-max"];
 // 后端路由
 export const baseUrl = "/api";
@@ -18,11 +17,13 @@ export const isOnlyWeb = false;
 let isMoreChat = false;
 // https://chat.oaifree.com/dad04481-fa3f-494e-b90c-b822128073e5
 // gpts数据默认从此直接获取，聊天接口需要在设置页面进行设置，前端尚未写，但是选中默认获取gizmoID作为模型名直接发送，根据API中转自行定义修改，从chatBox.getAttribute('gizmo');获取
-let openaiBaseUrl = "https://chat.oaifree.com/dad04481-fa3f-494e-b90c-b822128073e5";
-let authToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJzZXNzaW9uX2lkIjoiMGM2aC05TU9BX3BHVVpIanItN3BYZW53UTRpWDQtSUYiLCJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiI3MzY3NzQzMjNAcXEuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsicG9pZCI6Im9yZy1hVUV1RkJ6RWd1NkdYOEZhMWN6dG5jRHMiLCJ1c2VyX2lkIjoidXNlci1FTlQzSDRXZVc3OGV6UUhZNFdQT3BQVVkifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6ImF1dGgwfDYzOTMzM2I5ZGFlMWQzNWE5OGMwMTYxNiIsImF1ZCI6WyJodHRwczovL2FwaS5vcGVuYWkuY29tL3YxIiwiaHR0cHM6Ly9vcGVuYWkub3BlbmFpLmF1dGgwYXBwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3MjU1NDY0NDUsImV4cCI6MTcyNjQxMDQ0NSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBtb2RlbC5yZWFkIG1vZGVsLnJlcXVlc3Qgb3JnYW5pemF0aW9uLnJlYWQgb2ZmbGluZV9hY2Nlc3MiLCJhenAiOiJwZGxMSVgyWTcyTUlsMnJoTGhURTlWVjliTjkwNWtCaCJ9.aYImYeCIoI09WBYEvVPlivypvFhkHTBYqU3rhwABevFy6xIjYSsFv8_QlPWL1QIlZvS6SoEwOpz1w29yrlO39HCPBu4sJUq3yGw8-FVS5tTu_-oCuPlQLOWRlJUukcUOJu9-VnvWvVr5sIYnV0THFmaVPPdccVQGG_Xw9OMEoTJfC5-9r08YPfQkq5jP5wtKvpnUuZ12XJZDRbiwIZPHGrswm0wgnj832EcloYrPYuBMBiuT8vlukTK0oc_uGAjnhY87oWvSqRgHyPO8m6sqTanHTGQeohBOycDXCqILm-OfFwI4RDMkG9fGzTuBlaw8YDDPymLw04VHEcp31FjQyw";
+let openaiBaseUrl = "http://111.119.238.132:5005";
+let authToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJwd2RfYXV0aF90aW1lIjoxNzMzMzYyMTUwOTI1LCJzZXNzaW9uX2lkIjoiVVpkM0R1UWRPVUU0d1Z1YnJHck5XaTFheEx3Yi1xUl8iLCJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJiYWxjYWlrYXJvczQ4MDFAaG90bWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJwb2lkIjoib3JnLURtU0N4alNZQjJuT08weEYwN2FxUGtTWSIsInVzZXJfaWQiOiJ1c2VyLTZ6aDNlT1JadFhIcWpuVTc4S2dweFdBSiJ9LCJpc3MiOiJodHRwczovL2F1dGgwLm9wZW5haS5jb20vIiwic3ViIjoiYXV0aDB8NjcwZTRhYjlkN2I4MDMzOTRiOWVmYmVhIiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTczMzM2MjE1NywiZXhwIjoxNzM0MjI2MTU3LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIG1vZGVsLnJlYWQgbW9kZWwucmVxdWVzdCBvcmdhbml6YXRpb24ucmVhZCBvcmdhbml6YXRpb24ud3JpdGUgb2ZmbGluZV9hY2Nlc3MiLCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyJ9.BuElk6tpB7070dS_tgqQlFyOl-fI6FdKtq-v2l8E9EoDMIhnhhGP0XUdYj_jPUX4bGW1PtcmWULSTJGWbuwQUlzZnDrdLCGnbE7mcm429s4V9kdaxvIa84Fa0ut3YSc_bnPGYecSpFGpmt0GRAYfTPn00TyLNIn1rBLk_XAbPIUZefgDWvvC0kBS93O87QUwXDrunh22kaKX_5_RyCV5I_knh5Fj2dekqse001cfH2V1gMS_gq-2Cbyo0Ci4F_1BSKtgLm_Vy7WaZSQ4lcdwAquw7I5JEGkA3vwUXqoMRUc2fA31QBb-WN0NTHAzaXF8Id66AMf4825bL3jZnRHIQQ";
 let fileExplare = '';
 let activeSessionId = null; // 当前活跃会话的标识符
 let currentActiveChatBox = null;
+// 添加用户状态常量
+export const USER_STATUS = 'user_status';
 
 export function setCookie(name, value, days) {
   let expires = "";
@@ -81,8 +82,8 @@ async function loadTurnstile() {
 }
 
 
-export async function _turnstileCb() {
-  console.log('_turnstileCb called');
+export async function _turnstileCb(from = "me") {
+  console.log(`${from}:_turnstileCb called`);
   const turnstile = await loadTurnstile();
   const uniqueId = `turnstile-widget-${Date.now()}`;
   const widgetContainer = document.createElement('div');
@@ -97,7 +98,7 @@ export async function _turnstileCb() {
         reject(error);
       },
       callback: function (token) {
-        console.log(`access_token ${token}`);
+        console.log(`${from}:access_token ${token}`);
         resolve(token);
       }
     });

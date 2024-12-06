@@ -1,5 +1,7 @@
-import { getActiveSessionId, AUTH_TOKEN, baseUrl, USER_NAME, USER_EAMIL, _turnstileCb, USER_AVATAR, setCookie, getCookie, clearCookie, saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from './common.js'
+import { getActiveSessionId, AUTH_TOKEN, baseUrl, USER_NAME, USER_EAMIL, _turnstileCb, USER_AVATAR, setCookie, getCookie, clearCookie, saveToLocalStorage, loadFromLocalStorage, clearLocalStorage, USER_STATUS } from './common.js'
 import { postResults, fetchResults, fetchWithTimeout, loadImage } from './utils/request.js';
+import { showAlert } from "./utils/component.js";
+
 const biggerIcon = document.getElementById("biggerBtn");
 const shareBtn = document.getElementById("shareBtn");
 const registerBtn = document.getElementById("registerBtn");
@@ -125,6 +127,28 @@ function showLogin() {
     document.querySelector('.login-menu-text').textContent = getCookie(USER_EAMIL);
     document.querySelector('.user-name').textContent = getCookie(USER_NAME);
     document.querySelector('.user-img').src = loadFromLocalStorage(USER_AVATAR);
+
+    // 检查是否是管理员并添加后台管理选项
+    if (getCookie(USER_STATUS) === '管理员') {
+      const loginMenu = document.getElementById('login-menu');
+      const menuList = loginMenu.querySelector('ul');
+
+      // 检查是否已存在管理员选项
+      if (!document.getElementById('adminPanel')) {
+        const adminLi = document.createElement('li');
+        adminLi.innerHTML = `<img src="./svg/admin.svg" class="menu-img" alt="icon li SVG">后台管理`;
+        adminLi.id = 'adminPanel';
+
+        // 在分隔线之后插入
+        const dividerLi = menuList.querySelector('li[style*="background-color"]');
+        menuList.insertBefore(adminLi, dividerLi.nextSibling);
+
+        adminLi.addEventListener('click', function () {
+          window.location.href = '/admin';
+          loginMenu.style.display = 'none';
+        });
+      }
+    }
   }
 }
 
@@ -139,54 +163,27 @@ document.getElementById('logOut').addEventListener('click', async function () {
       clearCookie(AUTH_TOKEN);
       clearCookie(USER_EAMIL);
       clearCookie(USER_NAME);
+      clearCookie(USER_STATUS); // 清除用户状态
       clearLocalStorage(USER_AVATAR);
       document.getElementById('avLoginUser').style.display = 'none';
       document.getElementById('unLoginDiv').style.display = 'block';
       document.getElementById('user-set').style.height = '170px';
+
+      // 移除管理员选项
+      const adminPanel = document.getElementById('adminPanel');
+      if (adminPanel) {
+        adminPanel.remove();
+      }
+
       showAlert(data.msg, true);
       location.reload();
     } else {
       showAlert(data.msg, false);
     }
-
   } catch (error) {
     showAlert('请求错误: ' + error, false);
   }
 });
-
-
-function closeAlert() {
-  const closeAlert = document.getElementById('closeAlert');
-  closeAlert.addEventListener('click', () => {
-    const alertBox = document.getElementById('customAlert');
-    alertBox.classList.remove('open');
-  })
-  closeAlert.click();
-}
-
-let alertTimeout;
-export function showAlert(message, isSuccess, duration = 3000) {
-  const alertBox = document.getElementById('customAlert');
-  const alertMessage = document.getElementById('alertMessage');
-  alertMessage.textContent = message;
-  alertBox.classList.add('open');
-  if (isSuccess) {
-    alertBox.classList.add('alert-success');
-    alertBox.classList.remove('alert-failure');
-  } else {
-    alertBox.classList.add('alert-failure');
-    alertBox.classList.remove('alert-success');
-  }
-  // 自动关闭弹窗
-  if (alertTimeout) {
-    clearTimeout(alertTimeout);
-  }
-
-  // 设置新的定时器
-  alertTimeout = setTimeout(() => {
-    closeAlert();
-  }, duration);
-}
 
 
 /**
@@ -330,9 +327,7 @@ document.getElementById('loginBtn').addEventListener('click', function (event) {
     })
       .then(response => response.json())
       .then(data => {
-        // console.log('Response data:', data);
         if (data.code === 200) {
-          // console.log('Auth token:', data.data.token);
           setCookie(AUTH_TOKEN, data.data.token, 7);
           closeModal();
           document.getElementById('unLoginDiv').style.display = 'none';
@@ -344,9 +339,9 @@ document.getElementById('loginBtn').addEventListener('click', function (event) {
           showAlert('登录成功', true)
           setCookie(USER_EAMIL, data.data.email, 7);
           setCookie(USER_NAME, data.data.username, 7);
+          setCookie(USER_STATUS, data.data.userStatus, 7); // 保存用户状态
           saveToLocalStorage(USER_AVATAR, data.data.avatar);
           location.reload();
-          // console.log('token:', getToken("auth_token"));
         } else {
           showAlert(data.msg, false);
           return;
@@ -371,10 +366,10 @@ shareBtn.addEventListener('click', function (event) {
   // 获取当前页面的完整 URL
   const currentUrl = window.location.href;
 
-// 使用 URL 对象来解析和构建 baseUrl
+  // 使用 URL 对象来解析和构建 baseUrl
   const url = new URL(currentUrl);
 
-// 构建 baseUrl，包含协议和主机名
+  // 构建 baseUrl，包含协议和主机名
   const baseUri = `${url.protocol}//${url.host}`;
 
   shareValue.value = `${baseUri}/share/${sessionId}`;

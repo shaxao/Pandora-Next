@@ -10,7 +10,7 @@
 import { getOpenaiBaseUrl, getAuthToken, getIsMoreChat, setIsMoreChat } from "./common.js"
 import { globalModeSettings } from "./setup.js"
 import { gptsBeginTalk } from "./app.js"
-import { showAlert } from "./iconBtn.js";
+import { showAlert } from "./utils/component.js";
 
 
 // const scrollHandler = debounce(() => {
